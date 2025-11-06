@@ -1,7 +1,11 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv'
 import { chatWithOllama } from './ollama.js';
 import studyMaterials from './data/json/materials.json' with { type: 'json' };
+
+dotenv.config()
+console.log(process.env)
 
 const app = express();
 const PORT = process.env.PORT || 3001;

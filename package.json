@@ -12,11 +12,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@qdrant/js-client-rest": "^1.15.1",
     "axios": "^1.11.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "llama-cloud-services": "^0.4.0",
+    "openai": "^6.8.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
