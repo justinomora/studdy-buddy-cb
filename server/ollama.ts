@@ -1,4 +1,8 @@
 import axios from 'axios';
+import { composePrompt } from './prompts/composePrompt';
+import { getEmbedding } from './utils';
+
+import { searchQdrant } from './services/qdrant';
 
 // Ollama configuration
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
@@ -18,8 +22,6 @@ interface OllamaResponse {
 
 /**
  * Send a chat message to Ollama and get a response
- * 
- * INCOMPLETE IMPLEMENTATION - Candidates must finish this
  * 
  * @param prompt - The prompt to send to Ollama (should include context from BOTH JSON and PDF sources)
  * @returns The response from Ollama
@@ -42,9 +44,37 @@ export async function chatWithOllama(prompt: string): Promise<string> {
   // Documentation: https://github.com/ollama/ollama/blob/main/docs/api.md
   
   try {
-    // YOUR IMPLEMENTATION HERE
-    
-    throw new Error('Ollama integration not implemented');
+
+    // Convert user's question to embedding for Qdrant db search
+    const queryEmbedding = await getEmbedding(prompt);
+  
+    // Retrieve context from Qdrant
+    const retrievedContextPoints : any = await searchQdrant(queryEmbedding);
+
+    // Extract the text/content from each of the points. 
+    const retrievedContext : string[] = retrievedContextPoints.map(
+     point => point.payload?.text ?? point.payload?.content ?? ""
+    );
+
+    console.debug("Clean retrieved context: ", retrievedContext)
+
+    // Generate Ollama LLM response : 
+    const basicRequestOptions: OllamaRequest = {
+      model: MODEL_NAME,
+      prompt: prompt,
+      stream: false,
+    }
+    const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, 
+      {...basicRequestOptions, messages: composePrompt(retrievedContext, prompt)},  
+      {
+        headers: { 
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    console.log("Final Ollama LLM response: ", response.data)
+    return response.data;
+
   } catch (error) {
     console.error('Ollama error:', error);
     throw new Error('Failed to get response from Ollama');

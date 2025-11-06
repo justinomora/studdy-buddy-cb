@@ -27,7 +27,6 @@ app.get('/api/materials', (req, res) => {
   res.json(studyMaterials);
 });
 
-// Chat endpoint - INCOMPLETE - CANDIDATES MUST IMPLEMENT
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
@@ -54,12 +53,14 @@ app.post('/api/chat', async (req, res) => {
     // - Prioritize the most relevant information?
     // - Balance between JSON and PDF sources?
     
-    // Placeholder response - REPLACE THIS
-    res.json({ 
-      response: "Chat endpoint not implemented. Please complete the implementation.",
-      context_used: null 
-    });
-    
+    chatWithOllama(message).then(response => {
+      console.log("api/chat response: ", response)
+      res.status(200).json({ 
+        response: response.response,
+        context_used: null
+      });
+   
+    })
   } catch (error) {
     console.error('Chat error:', error);
     res.status(500).json({ error: 'Internal server error' });
