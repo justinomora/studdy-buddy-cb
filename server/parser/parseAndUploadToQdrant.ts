@@ -35,7 +35,7 @@ interface PageDoc { // Todo: update to a DocChunk for chuncking
 }
 
 // The structure of each of the `topic` objects in `materials.json` 
-interface Topic {
+export interface Topic {
   id: string;
   title: string;
   category: string;

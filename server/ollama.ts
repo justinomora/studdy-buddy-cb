@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { composePrompt } from './prompts/composePrompt';
-import { getEmbedding } from './utils';
+import { getEmbedding, getRelevantTopic } from './utils';
 
 import { searchQdrant } from './services/qdrant';
 
@@ -27,28 +27,14 @@ interface OllamaResponse {
  * @returns The response from Ollama
  */
 export async function chatWithOllama(prompt: string): Promise<string> {
-  // TODO: Implement the Ollama API call
-  // 
-  // HINTS:
-  // 1. Use axios to make a POST request to `${OLLAMA_BASE_URL}/api/generate`
-  // 2. The request body should match the OllamaRequest interface
-  // 3. Set stream to false for simplicity (streaming is optional/bonus)
-  // 4. Handle errors appropriately
-  // 5. Return the response text
-  //
-  // IMPORTANT CONTEXT CONSIDERATIONS:
-  // - The prompt may include content from both JSON materials and PDF
-  // - Large contexts might affect response time and quality
-  // - Consider how you structure the prompt for best results
-  //
+
   // Documentation: https://github.com/ollama/ollama/blob/main/docs/api.md
   
   try {
-
     // Convert user's question to embedding for Qdrant db search
     const queryEmbedding = await getEmbedding(prompt);
   
-    // Retrieve context from Qdrant
+    // Retrieve context from Qdrant (PDF book)
     const retrievedContextPoints : any = await searchQdrant(queryEmbedding);
 
     // Extract the text/content from each of the points. 
@@ -56,7 +42,13 @@ export async function chatWithOllama(prompt: string): Promise<string> {
      point => point.payload?.text ?? point.payload?.content ?? ""
     );
 
-    console.debug("Clean retrieved context: ", retrievedContext)
+    // Include context from material.json (even though this might already exist in the Qdrant collection)
+    // This ensures we fullfill the requirement to include context from BOTH sources. 
+    const studyMaterialsContext = await getRelevantTopic(prompt);
+    retrievedContext.push(...studyMaterialsContext);
+
+    console.debug("Study Materials contexT: ", studyMaterialsContext);
+    console.debug("Entire clean retrieved context: ", retrievedContext)
 
     // Generate Ollama LLM response : 
     const basicRequestOptions: OllamaRequest = {
@@ -64,6 +56,7 @@ export async function chatWithOllama(prompt: string): Promise<string> {
       prompt: prompt,
       stream: false,
     }
+
     const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, 
       {...basicRequestOptions, messages: composePrompt(retrievedContext, prompt)},  
       {
