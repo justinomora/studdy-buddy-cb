@@ -1,0 +1,30 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  background: #f0f2f5;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar {
+  width: 400px;
+  padding: 20px;
+  background: #fafafa;
+  border-left: 1px solid #e0e0e0;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+  }
+}
